@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Tasks</title>
+    </head>
+    <body>
+        <%- include('./sub/navbar.ejs'); -%>
+        <h1>
+            Tasks
+        </h1>
+        <form action="/tasks" method="get">
+            <div>
+                <label for="filter-select">Filter:</label>
+                <select name="filter">
+                    <% if (filter === 0) { %>
+                        <option value="">No filter</option>
+                        <option value="0" selected>TODO</option>
+                        <option value="1">In progress</option>
+                        <option value="2">Done</option>
+                    <% } else if (filter == 1) { %>
+                        <option value="">No filter</option>
+                        <option value="0">TODO</option>
+                        <option value="1" selected>In progress</option>
+                        <option value="2">Done</option>
+                    <% } else if (filter == 2) { %>
+                        <option value="">No filter</option>
+                        <option value="0">TODO</option>
+                        <option value="1">In progress</option>
+                        <option value="2" selected>Done</option>
+                    <% } else { %>
+                        <option value="" selected>No filter</option>
+                        <option value="0">TODO</option>
+                        <option value="1">In progress</option>
+                        <option value="2">Done</option>
+                    <% } %>
+                </select>
+                <input type="submit" value="Apply" />
+            </div>
+        </form>
+        <div>
+            <% tasks.forEach(function(task){ %>
+                <%- include('./sub/task.ejs', {task: task}); -%>
+            <% }); %>
+        </div>
+    </body>
+</html>
+

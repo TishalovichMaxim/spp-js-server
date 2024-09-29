@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "outDir": "build",
+        //"target": "ES6"
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "noImplicitAny": true,
+    },
+    "include": [
+        "./src/*",
+    ],
+}
+

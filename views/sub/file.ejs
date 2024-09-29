@@ -1,0 +1,9 @@
+<div>
+    <a style="display: inline;" href="/tasks/download/<%= task.id %>/<%= fileInfo.id %>">
+        <%= fileInfo.name %>
+    </a>
+    <form style="display: inline;" action="/delete-file/<%= task.id %>/<%= fileInfo.id %>" method="post">
+        <input type="submit" value="x" />
+    </form>
+</div>
+

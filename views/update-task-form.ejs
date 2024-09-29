@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Tasks</title>
+    </head>
+    <body>
+        <%- include('./sub/navbar.ejs'); -%>
+
+        <form action="/update-task/<%= task.id %>" method="post">
+            <div>
+                Update task info:
+            </div>
+            <div>
+                <label for="title">Title: </label>
+                <input type="text" name="title" value="<%= task.title%>" required />
+            </div>
+            <div>
+                <label for="content">Content: </label>
+                <input type="text" name="content" value="<%= task.content%>" required />
+            </div>
+            <div>
+                <label for="status-select">Task status:</label>
+
+                <select name="status" id="status-select">
+                    <% if (task.status == 0) { %>
+                        <option value="0" selected>TODO</option>
+                        <option value="1">In progress</option>
+                        <option value="2">Done</option>
+                    <% } else if (task.status == 1) { %>
+                        <option value="0">TODO</option>
+                        <option value="1" selected>In progress</option>
+                        <option value="2">Done</option>
+                    <% } else {%>
+                        <option value="0">TODO</option>
+                        <option value="1">In progress</option>
+                        <option value="2" selected>Done</option>
+                    <% } %>
+                </select>
+            </div>
+            <div>
+                <label for="start">Completion date: </label>
+                <input type="date" id="completionDate" name="completionDate" value="<%= task.completionDate %>" required />
+            </div>
+            <div>
+                <input type="submit" value="Update" />
+            </div>
+        </form>
+        <form action="/delete-task/<%= task.id %>" method="post">
+            <h3>
+                Delete task:
+            </h3>
+            <input type="submit" value="Delete" />
+        </form>
+        <div>
+            <h3>Attach file:</h3>
+            <form action="/tasks/<%= task.id %>/upload" method="post" enctype="multipart/form-data">
+              <div>
+                <label for="file">Choose file to upload:</label>
+                <input type="file" id="file" name="file" multiple />
+              </div>
+              <div>
+                <button>Upload</button>
+              </div>
+            </form>
+        </div>
+        <div>
+            <h3>Attached files:</h3>
+            <% fileInfos.forEach(function(fileInfo){ %>
+                <%- include('./sub/file.ejs', {fileInfo: fileInfo, task: task}); -%>
+            <% }); %>
+        </div>
+    </body>
+    <script>
+        let today = new Date()
+        let dd = today.getDate()
+        let mm = today.getMonth() + 1
+        let yyyy = today.getFullYear()
+
+        if (dd < 10) {
+           dd = '0' + dd
+        }
+
+        if (mm < 10) {
+           mm = '0' + mm
+        } 
+            
+        today = yyyy + '-' + mm + '-' + dd
+        document.getElementById("completionDate").min = today
+    </script>
+</html>
+

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Tasks</title>
+    </head>
+    <body>
+        <%- include('./sub/navbar.ejs'); -%>
+        <form action="/add-task" method="post">
+            <div>
+                <label for="title">Name: </label>
+                <input type="text" name="title" required />
+            </div>
+            <div>
+                <label for="content">Description: </label>
+                <input type="text" name="content" required />
+            </div>
+            <div>
+                <label for="status-select">Task status:</label>
+
+                <select name="status" id="status-select">
+                    <option value="0">TODO</option>
+                    <option value="1">In progress</option>
+                    <option value="2">Done</option>
+                </select>
+            </div>
+            <div>
+                <label>Completion date: </label>
+                <input type="date" id="completionDate" name="completionDate" required />
+            </div>
+            <div>
+                <input type="submit" value="Add task" />
+            </div>
+        </form>
+    </body>
+    <script>
+        let today = new Date()
+        let dd = today.getDate()
+        let mm = today.getMonth() + 1
+        let yyyy = today.getFullYear()
+
+        if (dd < 10) {
+           dd = '0' + dd
+        }
+
+        if (mm < 10) {
+           mm = '0' + mm
+        } 
+            
+        today = yyyy + '-' + mm + '-' + dd
+        document.getElementById("completionDate").min = today
+    </script>
+</html>
+
