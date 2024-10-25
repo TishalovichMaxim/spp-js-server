@@ -1,5 +1,6 @@
 import { Task, TaskStatus } from '../model/task'
 import { FileInfo } from '../model/file'
+import { UserCredentials } from '../model/user'
 
 const statusMapper = new Map<TaskStatus, string>()
 statusMapper.set(TaskStatus.TODO, "TODO")
@@ -71,6 +72,27 @@ class TaskExtracter {
 
 }
 
+function extractUserCredentials(body: any): UserCredentials {
+    let login: string
+    if (typeof body.login === "string" && body.login.length > 0) {
+        login = body.login
+    } else {
+        throw new ExtractionError(400, "Incorrect value for login")
+    }
+
+    let password: string
+    if (typeof body.password === "string" && body.password.length > 0) {
+        password = body.password
+    } else {
+        throw new ExtractionError(400, "Incorrect value for password")
+    }
+
+    return {
+        login: login,
+        password: password
+    }
+}
+
 class RespTask {
 
     public id: number
@@ -137,5 +159,5 @@ class TaskMapper {
 
 }
 
-export { RespTask, ReqTask, TaskExtracter, TaskMapper, ExtractionError }
+export { RespTask, ReqTask, TaskExtracter, TaskMapper, ExtractionError, extractUserCredentials }
 

@@ -1,5 +1,3 @@
-import { FileInfo } from "./file";
-
 enum TaskStatus {
     TODO,
     IN_PROGRESS,

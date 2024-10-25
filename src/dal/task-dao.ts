@@ -1,15 +1,25 @@
 import { Task, TaskStatus } from "../model/task";
 import { FileInfo } from "../model/file";
 
+class UserData {
+
+    public tasks = new Map<number, Task>()
+
+    public files = new Map<number, Map<string, string>>()
+
+}
+
 class TaskDao {
 
     private prevId = 0
 
-    private tasks = new Map<number, Task>()
-
-    private files = new Map<number, Map<string, string>>()
+    private readonly userInfos = new Map<number, UserData>()
 
     constructor() {
+    }
+
+    public initUser(userId: number) {
+        this.userInfos.set(userId, new UserData())
     }
 
     private setId(task: Task) {
@@ -17,21 +27,24 @@ class TaskDao {
         task.id = this.prevId
     }
 
-    public save(task: Task) {
+    public save(userId: number, task: Task) {
         this.setId(task)
 
-        this.files.set(task.id!, new Map()) 
-        this.tasks.set(this.prevId, task)
+        this.userInfos.get(userId)!.files.set(task.id!, new Map()) 
+        this.userInfos.get(userId)!.tasks.set(this.prevId, task)
 
         return task
     }
 
-    public getFiles(taskId: number): FileInfo[] | undefined {
-        return Array.from(this.files.get(taskId)!.keys()).map(k => new FileInfo(k, this.files.get(taskId)!.get(k)!))
+    public getFiles(userId: number, taskId: number): FileInfo[] | undefined {
+        return Array.from(
+            this.userInfos.get(userId)!
+                .files.get(taskId)!.keys())
+                    .map(k => new FileInfo(k, this.userInfos.get(userId)!.files.get(taskId)!.get(k)!))
     }
 
-    public getFileInfo(taskId: number, fileId: string): FileInfo | undefined {
-        const taskFiles = this.files.get(taskId)
+    public getFileInfo(userId: number, taskId: number, fileId: string): FileInfo | undefined {
+        const taskFiles = this.userInfos.get(userId)!.files.get(taskId)
         if (!taskFiles) {
             return undefined
         }
@@ -44,13 +57,12 @@ class TaskDao {
         return new FileInfo(fileId, fileName)
     }
 
-    public get(id: number): Task | undefined {
-        const res = this.tasks.get(id)
-        return res
+    public get(userId: number, id: number): Task | undefined {
+        return this.userInfos.get(userId)!.tasks.get(id)
     }
 
-    public getAll(statusFilter?: TaskStatus): Task[] {
-        const arr = Array.from(this.tasks.values())
+    public getAll(userId: number, statusFilter?: TaskStatus): Task[] {
+        const arr = Array.from(this.userInfos.get(userId)!.tasks.values())
 
         if (!Number.isInteger(statusFilter)) {
             return arr
@@ -59,27 +71,35 @@ class TaskDao {
         }
     }
 
-    public update(task: Task): Task | undefined {
-        if (!this.tasks.has(task.id!)) {
+    public update(userId: number, task: Task): Task | undefined {
+        const userInfo = this.userInfos.get(userId)!
+
+        if (!userInfo.tasks.has(task.id!)) {
             return undefined
         }
 
-        this.tasks.set(task.id!, task)
+        userInfo.tasks.set(task.id!, task)
 
-        return this.tasks.get(task.id!)
+        return userInfo.tasks.get(task.id!)
     }
 
-    public addFile(taskId: number, fileId: string, fileName: string) {
-        this.files.get(taskId)?.set(fileId, fileName)
+    public addFile(userId: number, taskId: number, fileId: string, fileName: string) {
+        const userInfo = this.userInfos.get(userId)!
+
+        userInfo.files.get(taskId)?.set(fileId, fileName)
         return new FileInfo(fileId, fileName)
     }
 
-    public delete(taskId: number): boolean {
-        return this.tasks.delete(taskId) && this.files.delete(taskId)
+    public delete(userId: number, taskId: number): boolean {
+        const userInfo = this.userInfos.get(userId)!
+
+        return userInfo.tasks.delete(taskId) && userInfo.files.delete(taskId)
     }
 
-    public deleteFileInfo(taskId: number, fileId: string): boolean {
-        return this.files.get(taskId)!.delete(fileId)
+    public deleteFileInfo(userId: number, taskId: number, fileId: string): boolean {
+        const userInfo = this.userInfos.get(userId)!
+
+        return userInfo.files.get(taskId)!.delete(fileId)
     }
 
 }

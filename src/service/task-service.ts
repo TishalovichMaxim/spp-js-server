@@ -1,9 +1,10 @@
 import { TaskDao } from '../dal/task-dao'
-import { TaskStatus } from '../model/task'
+import { Task, TaskStatus } from '../model/task'
 import { TaskValidator } from './validation/task-validator'
 import { ServiceError } from './exception/service-exception'
 import { ReqTask, RespTask, TaskMapper } from '../dto/task-dto'
 import { FileInfo } from '../model/file'
+import { DaoError } from '../dal/dao-exception'
 
 class TaskService {
 
@@ -14,59 +15,65 @@ class TaskService {
     ) {
     }
 
-    public delete(taskId: number) {
-        if (!this.dao.delete(taskId)) {
+    public delete(userId: number, taskId: number) {
+        if (!this.dao.delete(userId, taskId)) {
             throw new ServiceError(404, `There is no task with id = ${taskId}`)
         }
     }
 
-    public update(reqTask: ReqTask): RespTask {
+    public update(userId: number, reqTask: ReqTask): RespTask {
         const task = this.mapper.reqToModel(reqTask)
 
-        const updatedTask = this.dao.update(task)
+        const updatedTask = this.dao.update(userId, task)
 
         if (!updatedTask) {
             throw new ServiceError(404, "There is not task with such id...")
         }
 
-        const files = this.dao.getFiles(task.id!)
+        const files = this.dao.getFiles(userId, task.id!)
         return this.mapper.modelToResp(updatedTask, files!)
     }
 
-    public add(reqTask: ReqTask): RespTask {
-        const task = this.dao.save(this.mapper.reqToModel(reqTask))
-        const files = this.dao.getFiles(task.id!)
+    public add(userId: number, reqTask: ReqTask): RespTask {
+        let task: Task
+        try {
+            task = this.dao.save(userId, this.mapper.reqToModel(reqTask))
+        } catch (e: any) {
+            throw new ServiceError(400, e.message)
+        }
+
+        const files = this.dao.getFiles(userId, task.id!)
         return this.mapper.modelToResp(task, files!)
     }
 
-    public get(taskId: number): RespTask {
-        const task = this.dao.get(taskId)
+    public get(userId: number, taskId: number): RespTask {
+        const task = this.dao.get(userId, taskId)
         if (!task) {
             throw new ServiceError(404, `There is no task with id = ${taskId}`)
         }
         
-        const files = this.dao.getFiles(task.id!)
+        const files = this.dao.getFiles(userId, task.id!)
         return this.mapper.modelToResp(task!, files!)
     }
 
-    public getAll(filter: number | undefined): RespTask[] {
+    public getAll(userId: number, filter: number | undefined): RespTask[] {
         let tasks; 
 
         if (filter !== undefined && (TaskStatus.TODO <= filter) && (filter <= TaskStatus.DONE)) {
-            tasks = this.dao.getAll(filter)
+            tasks = this.dao.getAll(userId, filter)
         } else {
-            tasks = this.dao.getAll()
+            tasks = this.dao.getAll(userId)
         }
 
-        return tasks.map(t => this.mapper.modelToResp(t, this.dao.getFiles(t.id!)!))
+        return tasks.map(t => this.mapper.modelToResp(t, this.dao.getFiles(userId, t.id!)!))
     }
 
-    public addFile(taskId: number, fileId: string, fileName: string): FileInfo {
-        return this.dao.addFile(taskId, fileId, fileName)
+    public addFile(userId: number, taskId: number, fileId: string, fileName: string): FileInfo {
+        return this.dao.addFile(userId, taskId, fileId, fileName)
     }
 
-    public getFileInfo(taskId: number, fileId: string): FileInfo {
-        const fileInfo = this.dao.getFileInfo(taskId, fileId)
+    public getFileInfo(userId: number, taskId: number, fileId: string): FileInfo {
+        const fileInfo = this.dao.getFileInfo(userId, taskId, fileId)
         if (!fileInfo) {
             throw new ServiceError(404, `There is no file with id = ${fileId} for task = ${taskId}`)
         }
@@ -74,8 +81,8 @@ class TaskService {
         return fileInfo
     }
 
-    public deleteFileInfo(taskId: number, fileId: string) {
-        if (!this.dao.deleteFileInfo(taskId, fileId)) {
+    public deleteFileInfo(userId: number, taskId: number, fileId: string) {
+        if (!this.dao.deleteFileInfo(userId, taskId, fileId)) {
             throw new ServiceError(404, `There is no file with id = ${fileId} for task = ${taskId}`)
         }
     }
