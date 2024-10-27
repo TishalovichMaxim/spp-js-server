@@ -72,6 +72,8 @@ class TaskExtracter {
 
 }
 
+const taskExtracter = new TaskExtracter()
+
 function extractUserCredentials(body: any): UserCredentials {
     let login: string
     if (typeof body.login === "string" && body.login.length > 0) {
@@ -159,5 +161,5 @@ class TaskMapper {
 
 }
 
-export { RespTask, ReqTask, TaskExtracter, TaskMapper, ExtractionError, extractUserCredentials }
+export { RespTask, ReqTask, TaskExtracter, TaskMapper, ExtractionError, extractUserCredentials, taskExtracter }
 

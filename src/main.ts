@@ -1,16 +1,17 @@
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
-import { TaskDao } from './dal/task-dao';
-import { UserDao } from './dal/user-dao';
 import multer from 'multer';
 import cors from 'cors';
-import { ExtractionError, extractUserCredentials, TaskExtracter, TaskMapper } from './dto/task-dto'
-import { TaskService } from './service/task-service'
-import { UserService } from './service/user-service'
-import { TaskValidator } from './service/validation/task-validator'
+import { ExtractionError, extractUserCredentials } from './dto/task-dto'
 import { ServiceError } from './service/exception/service-exception'
 import { authenticate, generateToken } from './service/auth/auth'
 import cookieParser from 'cookie-parser'
+import { taskExtracter, taskService, userService } from "./dependencies"
+
+import dotenv from "dotenv"
+dotenv.config()
+
+import "./ws/main"
 
 const upload = multer({ dest: 'uploads/' })
 const app = express()
@@ -24,15 +25,6 @@ app.use(cors({
 }))
 app.use(cookieParser())
 
-const taskDao = new TaskDao()
-const userDao = new UserDao(taskDao)
-
-const userService = new UserService(userDao)
-
-const taskValidator = new TaskValidator()
-const taskMapper = new TaskMapper()
-const taskService = new TaskService(taskDao, taskValidator, taskMapper)
-const taskExtracter = new TaskExtracter()
 
 const TOKEN_KEY = "auth-token"
 
@@ -242,6 +234,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     }
 })
 
-const port = 18080
+const port = process.env.REST_PORT
 app.listen(port, () => {})
 
