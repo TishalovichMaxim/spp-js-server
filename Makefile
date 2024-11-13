@@ -4,8 +4,8 @@ main: compile
 ws: compile
 	node ./build/ws/main.js
 
-debug-ws: compile
-	node --inspect ./build/ws/main.js
+debug: compile
+	node --inspect ./build/main.js
 
 compile:
 	tsc

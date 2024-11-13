@@ -1,19 +1,20 @@
 import { Task, TaskStatus } from '../model/task'
 import { FileInfo } from '../model/file'
 import { UserCredentials } from '../model/user'
+import { ServiceError } from '../service/exception/service-exception'
 
 const statusMapper = new Map<TaskStatus, string>()
 statusMapper.set(TaskStatus.TODO, "TODO")
 statusMapper.set(TaskStatus.IN_PROGRESS, "IN PROGRESS")
 statusMapper.set(TaskStatus.DONE, "DONE")
 
-class ExtractionError extends Error {
+class ExtractionError extends ServiceError {
 
     constructor(
         public code: number,
         public message: string
     ) {
-        super(message)
+        super(code, message)
     }
 
 }
@@ -34,7 +35,7 @@ class TaskExtracter {
         if (typeof body.title === "string" && body.title.length > 0) {
             title = body.title
         } else {
-            console.log(body.title)
+            console.log("Wrong title: %o", body.title)
             throw new ExtractionError(400, "Incorrect value for title")
         }
 

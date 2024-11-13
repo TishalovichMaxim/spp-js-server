@@ -4,9 +4,10 @@ import multer from 'multer';
 import cors from 'cors';
 import { ExtractionError, extractUserCredentials } from './dto/task-dto'
 import { ServiceError } from './service/exception/service-exception'
-import { authenticate, generateToken } from './service/auth/auth'
+import { authenticate, EXPIRATION_TIME, generateToken, getExpireDate, TOKEN_KEY } from './service/auth/auth'
 import cookieParser from 'cookie-parser'
-import { taskExtracter, taskService, userService } from "./dependencies"
+import { taskExtracter, taskService, userService, getUserId } from "./dependencies"
+import { graphqlHandler } from "./graph-ql/main"
 
 import dotenv from "dotenv"
 dotenv.config()
@@ -24,13 +25,6 @@ app.use(cors({
     origin: "http://localhost:5173"
 }))
 app.use(cookieParser())
-
-
-const TOKEN_KEY = "auth-token"
-
-function getExpireDate(millis: number): Date {
-    return new Date(Date.now() + 3*60*60*1000 + millis)
-}
 
 function auth(req: Request, resp: Response, next: any) {
     console.log("All cookies: %o", req.cookies)
@@ -59,10 +53,11 @@ function auth(req: Request, resp: Response, next: any) {
     next()
 }
 
-function getUserId(req: Request): number {
-    const currReq: any = req
-    return currReq.userId
-}
+app.all(
+    "/graph-ql",
+    auth,
+    graphqlHandler
+)
 
 app.get('/tasks', auth, (req, res) => {
     res.status(200)
@@ -101,7 +96,7 @@ app.post('/sign-in', (req, res) => {
 
     const user = userService.signIn(credentials.login, credentials.password)
 
-    const token = generateToken({ userId: user.id })
+    const token = generateToken(user.id)
 
     console.log("Generated token: %s", token)
 
@@ -111,7 +106,7 @@ app.post('/sign-in', (req, res) => {
             token,
             {
                 httpOnly: true,
-                expires: getExpireDate(15*60*1000)
+                expires: getExpireDate(EXPIRATION_TIME)
             }
         )
         .status(200)
@@ -127,7 +122,7 @@ app.post('/sign-up', (req, res) => {
     console.log("Extracted credentials: %o", credentials)
 
     const createdUser = userService.add(credentials)
-    const token = generateToken({ userId: createdUser.id })
+    const token = generateToken(createdUser.id)
 
     console.log("Generated token: %o", token)
 
@@ -137,7 +132,7 @@ app.post('/sign-up', (req, res) => {
             token,
             {
                 httpOnly: true,
-                expires: getExpireDate(15*60*1000)
+                expires: getExpireDate(EXPIRATION_TIME)
             }
         )
         .status(201)
